@@ -66,7 +66,7 @@
     <div id="loginForm">
       <div class="form-group">
         <label>كلمة المرور:</label>
-        <input type="password" id="authPassword">
+        <input type="password" id="authPassword" placeholder="أدخل كلمة المرور">
       </div>
       <button onclick="loginAdmin()" class="btn-submit">دخول</button>
     </div>
@@ -91,8 +91,10 @@
 </div>
 
 <script>
-  // رابط Web App المرفق
+  // رابط Web App
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGUgyViWhUZ3Iwr_krsx_XuRP0jgDpRKzxS6RYx6TMPBEygNzEsHWLFmQzQheR7nIq/exec"; 
+  // كلمة المرور المعتمدة
+  const ADMIN_PASSWORD = "Sllly";
 
   let currentPassword = '';
 
@@ -136,21 +138,27 @@
 
   // دخول لوحة الاعتماد
   function loginAdmin() {
-    const pass = document.getElementById('authPassword').value;
+    const passInput = document.getElementById('authPassword').value;
     const status = document.getElementById('adminStatus');
+
+    if (passInput !== ADMIN_PASSWORD) {
+      status.innerText = 'كلمة المرور غير صحيحة!';
+      return;
+    }
+
     status.innerText = 'جاري التحقق...';
 
-    fetch(`${SCRIPT_URL}?action=getPendingRecords&password=${encodeURIComponent(pass)}`)
+    fetch(`${SCRIPT_URL}?action=getPendingRecords&password=${encodeURIComponent(passInput)}`)
     .then(res => res.json())
     .then(res => {
       if (res.success) {
-        currentPassword = pass;
+        currentPassword = passInput;
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
         status.innerText = '';
         renderTable(res.records);
       } else {
-        status.innerText = res.message;
+        status.innerText = res.message || 'تعذر جلب البيانات.';
       }
     })
     .catch(err => {
