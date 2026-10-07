@@ -1,229 +1,30 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة السجلات والاعتمادات</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #fff; margin: 0; padding: 20px; }
-    .container { max-width: 850px; margin: auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
-    h2 { border-bottom: 2px solid #333; padding-bottom: 10px; color: #00bcd4; margin-top: 0; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 6px; color: #ccc; }
-    input, textarea { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; box-sizing: border-box; }
-    button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-    .btn-submit { background-color: #008cba; color: white; width: 100%; }
-    .btn-submit:hover { background-color: #007399; }
-    .btn-accept { background-color: #4CAF50; color: white; margin-left: 5px; }
-    .btn-reject { background-color: #f44336; color: white; }
-    .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .nav-tabs button { background: #333; color: white; flex: 1; padding: 12px; }
-    .nav-tabs button.active { background: #00bcd4; color: #121212; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #333; padding: 12px; text-align: center; word-break: break-word; }
-    th { background-color: #2a2a2a; color: #00bcd4; }
-    #status, #adminStatus { margin-top: 15px; font-weight: bold; text-align: center; }
-  </style>
+    <meta charset="UTF-8">
+    <title>الموقع</title>
 </head>
 <body>
 
-<div class="container">
-  <div class="nav-tabs">
-    <button class="active" onclick="switchTab('add-tab', this)">إضافة سجل جديد (المسؤول)</button>
-    <button onclick="switchTab('admin-tab', this)">صفحة الاعتماد (خاصة)</button>
-  </div>
+    <!-- محتوى موقعك هنا -->
 
-  <!-- قسم إضافة السجلات -->
-  <div id="add-tab" class="tab-content active">
-    <h2>إضافة تعديل نقاط جديد</h2>
-    <form id="addForm">
-      <div class="form-group">
-        <label>أرقام الهوية IDs (يمكنك وضع عدة أرقام تفصل بينها فاصلة أو سطر جديد):</label>
-        <textarea id="ids" rows="4" placeholder="مثال:&#10;773&#10;80, 777" required></textarea>
-      </div>
-      <div class="form-group">
-        <label>النقاط (زيادة أو خصم لكل ID):</label>
-        <input type="number" id="points" placeholder="مثال: 10 أو -5" required>
-      </div>
-      <div class="form-group">
-        <label>سبب التعديل:</label>
-        <textarea id="reason" rows="3" required></textarea>
-      </div>
-      <div class="form-group">
-        <label>مسؤول التعديل:</label>
-        <input type="text" id="admin" required>
-      </div>
-      <button type="submit" class="btn-submit">إرسال السجل</button>
-    </form>
-    <p id="status"></p>
-  </div>
+    <script>
+      // ضَع الكود هنا
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlqu5_Og4Mjl3KuCp58dPWWOMHS7FzciNmK189TRnOBx0fnw9OZJzCHFSGTKXEQobTlg/exec";
 
-  <!-- قسم الاعتماد -->
-  <div id="admin-tab" class="tab-content">
-    <h2>لوحة تحكم الاعتماد</h2>
-    <div id="loginForm">
-      <div class="form-group">
-        <label>كلمة المرور:</label>
-        <input type="password" id="authPassword" placeholder="أدخل كلمة المرور">
-      </div>
-      <button onclick="loginAdmin()" class="btn-submit">دخول</button>
-    </div>
-
-    <div id="adminPanel" style="display: none;">
-      <button onclick="loadPendingRequests()" style="background: #444; color: #fff;">تحديث القائمة</button>
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 30%;">أرقام الهوية IDs</th>
-            <th>النقاط</th>
-            <th>السبب</th>
-            <th>المسؤول</th>
-            <th>الإجراء</th>
-          </tr>
-        </thead>
-        <tbody id="recordsTableBody"></tbody>
-      </table>
-    </div>
-    <p id="adminStatus"></p>
-  </div>
-</div>
-
-<script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIO8LpLbUzO0IyrgM2mzvbUcXpiorqZPSeBI7Kj01Gi2mAEIX_MLg1YCbh6DPqBm91/exec"; 
-  const ADMIN_PASSWORD = "Sllly";
-
-  let currentPassword = '';
-
-  function switchTab(tabId, btn) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-tabs button').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
-  }
-
-  function fetchJSONP(url, callbackName) {
-    return new Promise((resolve, reject) => {
-      window[callbackName] = function(data) {
-        delete window[callbackName];
-        const scriptElem = document.getElementById(callbackName);
-        if (scriptElem) document.body.removeChild(scriptElem);
-        resolve(data);
-      };
-      const script = document.createElement('script');
-      script.id = callbackName;
-      script.src = url + '&callback=' + callbackName;
-      script.onerror = () => reject(new Error('فشل الاتصال'));
-      document.body.appendChild(script);
-    });
-  }
-
-  document.getElementById('addForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const status = document.getElementById('status');
-    status.innerText = 'جاري إرسال البيانات...';
-
-    const payload = {
-      action: 'addRecord',
-      data: {
-        ids: document.getElementById('ids').value,
-        points: document.getElementById('points').value,
-        reason: document.getElementById('reason').value,
-        admin: document.getElementById('admin').value
+      async function fetchData() {
+          try {
+              const response = await fetch(SCRIPT_URL);
+              const data = await response.json();
+              console.log("البيانات المستلمة:", data);
+              return data;
+          } catch (error) {
+              console.error("حدث خطأ أثناء جلب البيانات:", error);
+          }
       }
-    };
 
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(() => {
-      status.innerText = 'تم إرسال السجل بنجاح وهو قيد الانتظار!';
-      document.getElementById('addForm').reset();
-    })
-    .catch(() => {
-      status.innerText = 'حدث خطأ أثناء الإرسال.';
-    });
-  });
-
-  function loginAdmin() {
-    const passInput = document.getElementById('authPassword').value;
-    const status = document.getElementById('adminStatus');
-
-    if (passInput !== ADMIN_PASSWORD) {
-      status.innerText = 'كلمة المرور غير صحيحة!';
-      return;
-    }
-
-    status.innerText = 'جاري الاتصال...';
-
-    const cbName = 'handleLoginResponse_' + Math.floor(Math.random() * 100000);
-    const url = `${SCRIPT_URL}?action=getPendingRecords&password=${encodeURIComponent(passInput)}`;
-
-    fetchJSONP(url, cbName)
-    .then(res => {
-      if (res.success) {
-        currentPassword = passInput;
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-        status.innerText = '';
-        renderTable(res.records);
-      } else {
-        status.innerText = res.message || 'تعذر تسجيل الدخول.';
-      }
-    })
-    .catch(err => {
-      status.innerText = 'فشل الاتصال بالشيت. تأكد من إعدادات New Deployment واختيار Anyone.';
-    });
-  }
-
-  function loadPendingRequests() {
-    loginAdmin();
-  }
-
-  function renderTable(records) {
-    const tbody = document.getElementById('recordsTableBody');
-    tbody.innerHTML = '';
-    if (!records || records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5">لا توجد طلبات معلقة حالياً</td></tr>';
-      return;
-    }
-    records.forEach(r => {
-      tbody.innerHTML += `
-        <tr>
-          <td style="white-space: pre-line;">${r.ids}</td>
-          <td>${r.points}</td>
-          <td>${r.reason}</td>
-          <td>${r.admin}</td>
-          <td>
-            <button class="btn-accept" onclick="handleAction(${r.rowIndex}, 'accept')">قبول</button>
-            <button class="btn-reject" onclick="handleAction(${r.rowIndex}, 'reject')">رفض</button>
-          </td>
-        </tr>
-      `;
-    });
-  }
-
-  function handleAction(rowIndex, action) {
-    const status = document.getElementById('adminStatus');
-    status.innerText = 'جاري معالجة الطلب وتحديث الجدول الرئيسي...';
-
-    const cbName = 'handleActionResponse_' + Math.floor(Math.random() * 100000);
-    const url = `${SCRIPT_URL}?action=processRecord&password=${encodeURIComponent(currentPassword)}&rowIndex=${rowIndex}&processAction=${action}`;
-
-    fetchJSONP(url, cbName)
-    .then(res => {
-      status.innerText = res.message;
-      loadPendingRequests();
-    })
-    .catch(err => {
-      status.innerText = 'حدث خطأ أثناء معالجة الطلب.';
-    });
-  }
-</script>
-
+      // استدعاء الدالة عند تحميل الصفحة مثلاً
+      fetchData();
+    </script>
 </body>
 </html>
