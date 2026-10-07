@@ -91,7 +91,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGUgyViWhUZ3Iwr_krsx_XuRP0jgDpRKzxS6RYx6TMPBEygNzEsHWLFmQzQheR7nIq/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjy9m94TwsL5076H7BsefrAm_lFPIWJwJVAM8NFZ_RHoobS5WEZ033UAytEuodqPJN/exec"; 
   const ADMIN_PASSWORD = "Sllly";
 
   let currentPassword = '';
@@ -101,6 +101,23 @@
     document.querySelectorAll('.nav-tabs button').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     btn.classList.add('active');
+  }
+
+  // دالة JSONP لتجاوز قيود CORS والحظر
+  function fetchJSONP(url, callbackName) {
+    return new Promise((resolve, reject) => {
+      window[callbackName] = function(data) {
+        delete window[callbackName];
+        const scriptElem = document.getElementById(callbackName);
+        if (scriptElem) document.body.removeChild(scriptElem);
+        resolve(data);
+      };
+      const script = document.createElement('script');
+      script.id = callbackName;
+      script.src = url + '&callback=' + callbackName;
+      script.onerror = () => reject(new Error('فشل الاتصال'));
+      document.body.appendChild(script);
+    });
   }
 
   // إضافة سجل جديد
@@ -121,22 +138,16 @@
 
     fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(res => {
-      if (res.success) {
-        status.innerText = 'تم إرسال السجل بنجاح وهو قيد الانتظار!';
-        document.getElementById('addForm').reset();
-      } else {
-        status.innerText = 'حدث خطأ: ' + (res.error || 'تعذر الحفظ');
-      }
+    .then(() => {
+      status.innerText = 'تم إرسال السجل بنجاح وهو قيد الانتظار!';
+      document.getElementById('addForm').reset();
     })
     .catch(() => {
-      // التعامل مع حالة النشر التي لا ترجع CORS بشكل مباشر
-      status.innerText = 'تم إرسال الطلب بنجاح!';
-      document.getElementById('addForm').reset();
+      status.innerText = 'حدث خطأ أثناء الإرسال.';
     });
   });
 
@@ -150,10 +161,12 @@
       return;
     }
 
-    status.innerText = 'جاري الاتصال بالسيرفر...';
+    status.innerText = 'جاري الاتصال...';
 
-    fetch(`${SCRIPT_URL}?action=getPendingRecords&password=${encodeURIComponent(passInput)}`)
-    .then(res => res.json())
+    const cbName = 'handleLoginResponse_' + Math.floor(Math.random() * 100000);
+    const url = `${SCRIPT_URL}?action=getPendingRecords&password=${encodeURIComponent(passInput)}`;
+
+    fetchJSONP(url, cbName)
     .then(res => {
       if (res.success) {
         currentPassword = passInput;
@@ -162,12 +175,11 @@
         status.innerText = '';
         renderTable(res.records);
       } else {
-        status.innerText = res.message || 'خطأ في التحقق من كلمة المرور.';
+        status.innerText = res.message || 'تعذر تسجيل الدخول.';
       }
     })
     .catch(err => {
-      console.error(err);
-      status.innerText = 'فشل الاتصال بالشيت. تأكد من عمل New Deployment للـ Web App وأن الخيار Anyone مفعّل.';
+      status.innerText = 'فشل الاتصال بالشيت. تأكد من إعدادات New Deployment واختيار Anyone.';
     });
   }
 
@@ -202,8 +214,10 @@
     const status = document.getElementById('adminStatus');
     status.innerText = 'جاري معالجة الطلب...';
 
-    fetch(`${SCRIPT_URL}?action=processRecord&password=${encodeURIComponent(currentPassword)}&rowIndex=${rowIndex}&processAction=${action}`)
-    .then(res => res.json())
+    const cbName = 'handleActionResponse_' + Math.floor(Math.random() * 100000);
+    const url = `${SCRIPT_URL}?action=processRecord&password=${encodeURIComponent(currentPassword)}&rowIndex=${rowIndex}&processAction=${action}`;
+
+    fetchJSONP(url, cbName)
     .then(res => {
       status.innerText = res.message;
       loadPendingRequests();
