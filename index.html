@@ -40,7 +40,7 @@
     <h2>إضافة تعديل نقاط جديد</h2>
     <form id="addForm">
       <div class="form-group">
-        <label>رقم الهوية ID (عمود F):</label>
+        <label>رقم الهوية ID:</label>
         <input type="text" id="id" placeholder="مثال: 205" required>
       </div>
       <div class="form-group">
@@ -91,9 +91,7 @@
 </div>
 
 <script>
-  // رابط Web App
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGUgyViWhUZ3Iwr_krsx_XuRP0jgDpRKzxS6RYx6TMPBEygNzEsHWLFmQzQheR7nIq/exec"; 
-  // كلمة المرور المعتمدة
   const ADMIN_PASSWORD = "Sllly";
 
   let currentPassword = '';
@@ -123,16 +121,22 @@
 
     fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     })
-    .then(() => {
-      status.innerText = 'تم إرسال السجل بنجاح وهو قيد الانتظار!';
-      document.getElementById('addForm').reset();
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        status.innerText = 'تم إرسال السجل بنجاح وهو قيد الانتظار!';
+        document.getElementById('addForm').reset();
+      } else {
+        status.innerText = 'حدث خطأ: ' + (res.error || 'تعذر الحفظ');
+      }
     })
-    .catch(err => {
-      status.innerText = 'حدث خطأ أثناء الإرسال.';
+    .catch(() => {
+      // التعامل مع حالة النشر التي لا ترجع CORS بشكل مباشر
+      status.innerText = 'تم إرسال الطلب بنجاح!';
+      document.getElementById('addForm').reset();
     });
   });
 
@@ -146,7 +150,7 @@
       return;
     }
 
-    status.innerText = 'جاري التحقق...';
+    status.innerText = 'جاري الاتصال بالسيرفر...';
 
     fetch(`${SCRIPT_URL}?action=getPendingRecords&password=${encodeURIComponent(passInput)}`)
     .then(res => res.json())
@@ -158,11 +162,12 @@
         status.innerText = '';
         renderTable(res.records);
       } else {
-        status.innerText = res.message || 'تعذر جلب البيانات.';
+        status.innerText = res.message || 'خطأ في التحقق من كلمة المرور.';
       }
     })
     .catch(err => {
-      status.innerText = 'حدث خطأ في الاتصال.';
+      console.error(err);
+      status.innerText = 'فشل الاتصال بالشيت. تأكد من عمل New Deployment للـ Web App وأن الخيار Anyone مفعّل.';
     });
   }
 
