@@ -1,30 +1,359 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>الموقع</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة طلبات الاعتماد - وزارة الدفاع</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text-color: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --success-color: #16a34a;
+      --danger-color: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #38bdf8;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 10px;
+      font-size: 1.4rem;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-color);
+    }
+
+    input, textarea, select {
+      background-color: #0f172a;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent-color);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    button {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-danger {
+      background-color: var(--danger-color);
+    }
+    .btn-danger:hover {
+      background-color: #b91c1c;
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+    }
+    .btn-success:hover {
+      background-color: #15803d;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+      font-weight: 600;
+    }
+    .alert-success { background-color: #064e3b; color: #6ee7b7; border: 1px solid #047857; }
+    .alert-error { background-color: #4c1d95; color: #c084fc; border: 1px solid #6d28d9; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: #0f172a;
+      color: #38bdf8;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pre-ids {
+      white-space: pre-wrap;
+      font-family: monospace;
+      background: #0f172a;
+      padding: 6px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
 
-    <!-- محتوى موقعك هنا -->
+<div class="container">
 
-    <script>
-      // ضَع الكود هنا
-      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlqu5_Og4Mjl3KuCp58dPWWOMHS7FzciNmK189TRnOBx0fnw9OZJzCHFSGTKXEQobTlg/exec";
+  <!-- قسم إضافة طلب جديد -->
+  <div class="card">
+    <h2>📝 إرسال طلب نقاط جديد</h2>
+    <form id="requestForm">
+      <div class="form-group">
+        <label for="ids">الأيديات (Discord ID أو Game ID):</label>
+        <textarea id="ids" placeholder="أدخل الأيديات هنا...&#10;ملاحظة: يمكنك وضع عدة أيديات (كل أيدي في سطر جديد أو مفصولة بفواصل)" required></textarea>
+        <span class="hint">يدعم إدخال أكثر من أيدي في نفس الوقت.</span>
+      </div>
 
-      async function fetchData() {
-          try {
-              const response = await fetch(SCRIPT_URL);
-              const data = await response.json();
-              console.log("البيانات المستلمة:", data);
-              return data;
-          } catch (error) {
-              console.error("حدث خطأ أثناء جلب البيانات:", error);
-          }
+      <div class="form-group">
+        <label for="points">عدد النقاط:</label>
+        <input type="number" id="points" placeholder="مثال: 5 أو -2" required>
+      </div>
+
+      <div class="form-group">
+        <label for="reason">سبب التعديل:</label>
+        <input type="text" id="reason" placeholder="أدخل سبب إضافة أو خصم النقاط" required>
+      </div>
+
+      <div class="form-group">
+        <label for="admin">اسم مسئول التعديل:</label>
+        <input type="text" id="admin" placeholder="اسمك أو المسمى الوظيفي" required>
+      </div>
+
+      <button type="submit" id="submitBtn">إرسال الطلب إلى الشيت 🚀</button>
+      <div id="formAlert" class="alert"></div>
+    </form>
+  </div>
+
+  <!-- قسم لوحة اعتمادات الإدارة -->
+  <div class="card">
+    <h2>🛡️ لوحة اعتماد الطلبات (للإدارة)</h2>
+    <div class="form-group" style="flex-direction: row; gap: 10px;">
+      <input type="password" id="adminPassword" placeholder="أدخل كلمة المرور" style="flex: 1;">
+      <button onclick="loadPendingRequests()">جلب الطلبات المعلقة 🔄</button>
+    </div>
+
+    <div id="pendingContainer" style="overflow-x: auto;">
+      <table id="pendingTable">
+        <thead>
+          <tr>
+            <th>الأيديات</th>
+            <th>النقاط</th>
+            <th>السبب</th>
+            <th>المسؤول</th>
+            <th>الإجراء</th>
+          </tr>
+        </thead>
+        <tbody id="pendingBody">
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted);">أدخل كلمة المرور واضغط جلب لعرض الطلبات المعلقة.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="adminAlert" class="alert"></div>
+  </div>
+
+</div>
+
+<script>
+  // رابط الـ Web App الخاص بك
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlqu5_Og4Mjl3KuCp58dPWWOMHS7FzciNmK189TRnOBx0fnw9OZJzCHFSGTKXEQobTlg/exec";
+
+  // 1. معالجة إرسال طلب جديد
+  document.getElementById('requestForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const alertBox = document.getElementById('formAlert');
+
+    btn.disabled = true;
+    btn.textContent = "جاري إرسال الطلب...";
+    alertBox.style.display = "none";
+
+    const payload = {
+      action: "addRecord",
+      data: {
+        ids: document.getElementById('ids').value,
+        points: document.getElementById('points').value,
+        reason: document.getElementById('reason').value,
+        admin: document.getElementById('admin').value
+      }
+    };
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+
+      const resData = await response.json();
+      
+      alertBox.className = "alert alert-success";
+      alertBox.textContent = resData.message || "تم إرسال الطلب بنجاح ✅";
+      alertBox.style.display = "block";
+      
+      document.getElementById('requestForm').reset();
+    } catch (err) {
+      alertBox.className = "alert alert-error";
+      alertBox.textContent = "حدث خطأ أثناء الإرسال: " + err.message;
+      alertBox.style.display = "block";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "إرسال الطلب إلى الشيت 🚀";
+    }
+  });
+
+  // 2. جلب الطلبات قيد الانتظار (JSONP)
+  function loadPendingRequests() {
+    const password = document.getElementById('adminPassword').value;
+    const alertBox = document.getElementById('adminAlert');
+    const tbody = document.getElementById('pendingBody');
+
+    if (!password) {
+      alert("يرجى إدخال كلمة المرور أولاً!");
+      return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">جاري التحميل...</td></tr>';
+
+    window.handlePendingResponse = function(response) {
+      if (!response.success) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger-color);">${response.message}</td></tr>`;
+        return;
       }
 
-      // استدعاء الدالة عند تحميل الصفحة مثلاً
-      fetchData();
-    </script>
+      const records = response.records;
+      if (!records || records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">لا توجد طلبات قيد الانتظار حالياً 🎉</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      records.forEach(rec => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><div class="pre-ids">${rec.ids}</div></td>
+          <td><b>${rec.points}</b></td>
+          <td>${rec.reason}</td>
+          <td>${rec.admin}</td>
+          <td>
+            <div class="actions">
+              <button class="btn-success" onclick="processRecord(${rec.rowIndex}, 'accept')">قبول</button>
+              <button class="btn-danger" onclick="processRecord(${rec.rowIndex}, 'reject')">رفض</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    const script = document.createElement('script');
+    script.src = `${SCRIPT_URL}?action=getPendingRecords&password=${encodeURIComponent(password)}&callback=handlePendingResponse`;
+    document.body.appendChild(script);
+  }
+
+  // 3. معالجة قبول أو رفض الطلب (JSONP)
+  function processRecord(rowIndex, processAction) {
+    const password = document.getElementById('adminPassword').value;
+    const alertBox = document.getElementById('adminAlert');
+
+    window.handleProcessResponse = function(response) {
+      alertBox.className = response.success ? "alert alert-success" : "alert alert-error";
+      alertBox.textContent = response.message;
+      alertBox.style.display = "block";
+
+      if (response.success) {
+        loadPendingRequests(); // إعادة تحميل القائمة
+      }
+    };
+
+    const script = document.createElement('script');
+    script.src = `${SCRIPT_URL}?action=processRecord&password=${encodeURIComponent(password)}&rowIndex=${rowIndex}&processAction=${processAction}&callback=handleProcessResponse`;
+    document.body.appendChild(script);
+  }
+</script>
+
 </body>
 </html>
