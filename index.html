@@ -6,7 +6,7 @@
   <title>نظام إدارة السجلات والاعتمادات</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #fff; margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+    .container { max-width: 850px; margin: auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
     h2 { border-bottom: 2px solid #333; padding-bottom: 10px; color: #00bcd4; margin-top: 0; }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 6px; color: #ccc; }
@@ -22,7 +22,7 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #333; padding: 12px; text-align: center; }
+    th, td { border: 1px solid #333; padding: 12px; text-align: center; word-break: break-word; }
     th { background-color: #2a2a2a; color: #00bcd4; }
     #status, #adminStatus { margin-top: 15px; font-weight: bold; text-align: center; }
   </style>
@@ -40,11 +40,11 @@
     <h2>إضافة تعديل نقاط جديد</h2>
     <form id="addForm">
       <div class="form-group">
-        <label>رقم الهوية ID:</label>
-        <input type="text" id="id" placeholder="مثال: 205" required>
+        <label>أرقام الهوية IDs (يمكنك وضع عدة أرقام تفصل بينها فاصلة أو سطر جديد):</label>
+        <textarea id="ids" rows="4" placeholder="مثال:&#10;773&#10;80, 777" required></textarea>
       </div>
       <div class="form-group">
-        <label>النقاط (زيادة أو خصم):</label>
+        <label>النقاط (زيادة أو خصم لكل ID):</label>
         <input type="number" id="points" placeholder="مثال: 10 أو -5" required>
       </div>
       <div class="form-group">
@@ -76,7 +76,7 @@
       <table>
         <thead>
           <tr>
-            <th>رقم الهوية ID</th>
+            <th style="width: 30%;">أرقام الهوية IDs</th>
             <th>النقاط</th>
             <th>السبب</th>
             <th>المسؤول</th>
@@ -91,7 +91,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjy9m94TwsL5076H7BsefrAm_lFPIWJwJVAM8NFZ_RHoobS5WEZ033UAytEuodqPJN/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwIO8LpLbUzO0IyrgM2mzvbUcXpiorqZPSeBI7Kj01Gi2mAEIX_MLg1YCbh6DPqBm91/exec"; 
   const ADMIN_PASSWORD = "Sllly";
 
   let currentPassword = '';
@@ -103,7 +103,6 @@
     btn.classList.add('active');
   }
 
-  // دالة JSONP لتجاوز قيود CORS والحظر
   function fetchJSONP(url, callbackName) {
     return new Promise((resolve, reject) => {
       window[callbackName] = function(data) {
@@ -120,7 +119,6 @@
     });
   }
 
-  // إضافة سجل جديد
   document.getElementById('addForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const status = document.getElementById('status');
@@ -129,7 +127,7 @@
     const payload = {
       action: 'addRecord',
       data: {
-        id: document.getElementById('id').value,
+        ids: document.getElementById('ids').value,
         points: document.getElementById('points').value,
         reason: document.getElementById('reason').value,
         admin: document.getElementById('admin').value
@@ -151,7 +149,6 @@
     });
   });
 
-  // دخول لوحة الاعتماد
   function loginAdmin() {
     const passInput = document.getElementById('authPassword').value;
     const status = document.getElementById('adminStatus');
@@ -197,7 +194,7 @@
     records.forEach(r => {
       tbody.innerHTML += `
         <tr>
-          <td>${r.id}</td>
+          <td style="white-space: pre-line;">${r.ids}</td>
           <td>${r.points}</td>
           <td>${r.reason}</td>
           <td>${r.admin}</td>
@@ -212,7 +209,7 @@
 
   function handleAction(rowIndex, action) {
     const status = document.getElementById('adminStatus');
-    status.innerText = 'جاري معالجة الطلب...';
+    status.innerText = 'جاري معالجة الطلب وتحديث الجدول الرئيسي...';
 
     const cbName = 'handleActionResponse_' + Math.floor(Math.random() * 100000);
     const url = `${SCRIPT_URL}?action=processRecord&password=${encodeURIComponent(currentPassword)}&rowIndex=${rowIndex}&processAction=${action}`;
